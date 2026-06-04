@@ -6,8 +6,8 @@
 |------|------|
 | **도메인** | 4×4 격자, 1~16, 빈칸 `0`, 마법 합 **34**, 검증 **10선** |
 | **페르소나** | 4×4 부분 마방진(빈칸 2개)을 손으로/코드로 다루는 학습자 |
-| **현재 단계** | Harness·ECB 확정 → **RED** (실패 테스트 작성) |
-| **구현 상태** | Harness 골격 있음 · `test_d_*` / `test_u_*` **미작성** |
+| **현재 단계** | **GREEN** (D-LOC-01 PASS) · Golden Master baseline 등재 |
+| **구현 상태** | `find_blank_coords` · `test_d_loc_01` **1 passed** · 나머지 `D-*`/`U-*` RED 대기 |
 
 ---
 
@@ -40,13 +40,17 @@ MagicSquare_XX/
 ├── README.md                                          # 본 파일
 ├── docs/
 │   ├── PRD.md                                         # 제품 요구사항 v0.1 (세션 3)
-│   └── RED-TODO.md                                    # RED 단계 Dual-Track Todo (상세)
+│   ├── RED-TODO.md                                    # RED 단계 Dual-Track Todo (상세)
+│   └── GOLDEN-MASTER.md                               # GREEN PASS 기준선 · 회귀 레지스트리
 ├── src/entity|control|boundary/                       # ECB (패키지 골격)
 ├── tests/entity|control|boundary/                     # Dual-Track 테스트 트랙
 ├── Report/
 │   ├── 01.REPORT.md                                   # Mom Test STEP 1 보고서
 │   ├── 01.MagicSquare_ProblemDefinition_Report.md     # 문제 정의 보고서
-│   └── 02.MagicSquare_HarnessAndCursorRules_Report.md # Harness · .cursorrules
+│   ├── 02.MagicSquare_HarnessAndCursorRules_Report.md # Harness · .cursorrules
+│   ├── 03.MagicSquare_RED_DLOC01_Report.md            # RED · D-LOC-01
+│   ├── 04.MagicSquare_GREEN_DLOC01_Report.md          # GREEN · D-LOC-01 baseline
+│   └── 05.MagicSquare_GoldenMaster_DSOL01_Report.md   # Golden Master · D-SOL-01
 └── prompting/
     ├── 01.prompting.md                                # STEP 1 인터뷰 Transcript
     └── 01.MagicSquare_ProblemDefinition_Prompting.md  # 문제 정의·워크북 Transcript
@@ -62,7 +66,11 @@ MagicSquare_XX/
 | [Report/01.MagicSquare_ProblemDefinition_Report.md](Report/01.MagicSquare_ProblemDefinition_Report.md) | 문제 정의 — 페르소나, 진짜/표면 문제, 도메인, 채점(8/10) |
 | [docs/PRD.md](docs/PRD.md) | PRD — R-G-I-O, Rule/Command/Skill/Test Loop, 성공 기준 |
 | [docs/RED-TODO.md](docs/RED-TODO.md) | RED 단계 Dual-Track Todo — 바운더리·로직 설계·pytest |
+| [docs/GOLDEN-MASTER.md](docs/GOLDEN-MASTER.md) | GREEN PASS 게이트 · 승인 출력 baseline (회귀) |
+| [Report/04.MagicSquare_GREEN_DLOC01_Report.md](Report/04.MagicSquare_GREEN_DLOC01_Report.md) | GREEN · D-LOC-01 · Golden Master 1차 |
+| [Report/05.MagicSquare_GoldenMaster_DSOL01_Report.md](Report/05.MagicSquare_GoldenMaster_DSOL01_Report.md) | Golden Master · D-SOL-01 · `_approval.py` |
 | [prompting/01.prompting.md](prompting/01.prompting.md) | STEP 1 Cursor 대화 Export |
+| [prompting/05.MagicSquare_GoldenMaster_DSOL01_Prompting.md](prompting/05.MagicSquare_GoldenMaster_DSOL01_Prompting.md) | GREEN·Golden Master 세션 Export |
 | [prompting/01.MagicSquare_ProblemDefinition_Prompting.md](prompting/01.MagicSquare_ProblemDefinition_Prompting.md) | 문제 정의·워크북·PRD 작성 대화 Export |
 
 ---
@@ -93,10 +101,10 @@ MagicSquare_XX/
 
 ### 공통 (RED 착수 전)
 
-- [ ] `pip install -e ".[dev]"` 후 Harness pytest 확인 (`0 collected` → 정상)
-- [ ] **MagicConstant SSOT** (`src/entity/constants.py` 등) — `34`/`16` 리터럴 금지
+- [x] `pip install -e ".[dev]"` 후 pytest 확인 (`.venv` · **1 passed** @ D-LOC-01)
+- [x] **MagicConstant SSOT** (`src/entity/constants.py`) — `34`/`16`/`4`/`0` 리터럴 금지
 - [ ] E001~E007 boundary 오류 표 상세 확정
-- [ ] conftest 픽스처: **G1**, **G_complete**, **G_mom**, **grid_g1** / **grid_bad_blanks** (D-LOC)
+- [x] conftest 픽스처: **grid_g1** (D-LOC-01) · [ ] **G_complete**, **G_mom**, **grid_bad_blanks**
 
 ### Track A — Boundary (UI · `U-*`)
 
@@ -125,10 +133,10 @@ MagicSquare_XX/
 > **FR-LOC-01 (가칭):** 4×4 격자에서 `0`인 빈칸 **2개**의 `(행, 열)`을 **row-major** 순, **1-index** (1~4)로 반환.  
 > PRD 본문에는 아직 없음 — [docs/RED-TODO.md](docs/RED-TODO.md) §D-LOC · R-01·R-05·Report/02 근거.
 
-- [ ] **D-LOC-01** — **grid_g1** → `blank_coords_row_major` → `[(2,1),(3,4)]` row-major → RED: `ModuleNotFoundError`
+- [x] **D-LOC-01** — **grid_g1** → `find_blank_coords` → `[(2,2),(3,3)]` row-major · **GREEN PASS** ([Golden Master](docs/GOLDEN-MASTER.md))
 - [ ] **D-LOC-02** — **grid_g1** → 모든 `r,c ∈ {1..4}` (0-index 없음) → RED: `AssertionError`
 - [ ] **D-LOC-03** — **grid_bad_blanks** (빈칸 ≠2) → 도메인 거부 · E001~E005 **금지** → RED: `AssertionError`
-- [ ] `tests/entity/test_d_loc_01.py` RED · `pytest tests/entity/test_d_loc_01.py::test_d_loc_01_blank_coords_row_major -v`
+- [x] `tests/entity/test_d_loc_01.py` GREEN · `pytest tests/entity/test_d_loc_01.py -v`
 - [ ] PRD §3.1에 **FR-LOC-01** 문구 공식 반영 (선택)
 
 ---
@@ -141,8 +149,9 @@ MagicSquare_XX/
 | Problem Definition | 문제 정의 보고서 | ✅ |
 | PRD v0.1 | 세션 3 요구사항 | ✅ |
 | Harness · ECB | `src/`·`tests/` 골격 · Dual-Track | ✅ |
-| RED | [체크리스트](#red-단계-체크리스트) · `test_d_*` / `test_u_*` | ⏳ |
-| 세션 3 Green | `verify_lines` 등 구현 | ⏳ |
+| RED | [체크리스트](#red-단계-체크리스트) · `test_d_*` / `test_u_*` | ⏳ (D-LOC-01만 GREEN) |
+| Golden Master | [docs/GOLDEN-MASTER.md](docs/GOLDEN-MASTER.md) · D-LOC-01 baseline | ✅ |
+| 세션 3 Green | `verify_lines` 등 구현 | ⏳ (D-LOC-01 ✅) |
 | STEP 2 | 추궁 답변·추가 인터뷰 | ⏳ |
 
 ---

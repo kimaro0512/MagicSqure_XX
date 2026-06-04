@@ -87,7 +87,7 @@ python -m pytest tests/boundary/test_u_*.py -v
 | D-LOC-02 | 동일 | **grid_g1** → `1≤r,c≤4` | 0-index 좌표 없음 | `ModuleNotFoundError` / `AssertionError` |
 | D-LOC-03 | 동일 | **grid_bad_blanks** → 거부 | E001~E005 emit 금지 | `AssertionError` |
 
-- [ ] **D-LOC-01** — `test_d_loc_01_blank_coords_row_major` — RED: `ModuleNotFoundError`
+- [x] **D-LOC-01** — `test_d_loc_01_blank_coords_row_major` — **GREEN PASS** · Golden: `[(2,2),(3,3)]` ([GOLDEN-MASTER.md](GOLDEN-MASTER.md))
 - [ ] **D-LOC-02** — `test_d_loc_02_coords_one_indexed` — RED: `AssertionError`
 - [ ] **D-LOC-03** — `test_d_loc_03_rejects_wrong_blank_count` — RED: `AssertionError`
 - [ ] 파일: `tests/entity/test_d_loc_01.py` (RED 묶음: D-LOC-01~03)
@@ -144,9 +144,11 @@ python -m pytest tests/entity/ -k "D-05" -v
 
 ## GREEN 이후 Todo (참고 — RED 범위 밖)
 
-- [ ] Track별 pytest **PASS** → 같은 Track 디렉터리 회귀
-- [ ] `pytest tests/ -v --tb=short` 전체 Green
-- [ ] REFACTOR: 동작 유지, ECB·Track 경계 유지
+- [x] **D-LOC-01** Track별 pytest **PASS** (`tests/entity/` · 1 collected)
+- [x] `pytest tests/ -v --tb=short` — 현재 **1 passed** (D-LOC-01 only)
+- [x] Golden Master baseline — [GOLDEN-MASTER.md](GOLDEN-MASTER.md) · [Report/04](../Report/04.MagicSquare_GREEN_DLOC01_Report.md)
+- [ ] D-LOC-02~03 GREEN 후 baseline 행 추가
+- [ ] REFACTOR: 동작 유지, ECB·Track 경계 유지 (Track 전체 Green 이후)
 
 ---
 
