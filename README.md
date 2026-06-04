@@ -6,8 +6,8 @@
 |------|------|
 | **도메인** | 4×4 격자, 1~16, 빈칸 `0`, 마법 합 **34**, 검증 **10선** |
 | **페르소나** | 4×4 부분 마방진(빈칸 2개)을 손으로/코드로 다루는 학습자 |
-| **현재 단계** | STEP 1 Mom Test 완료 → 문제 정의·PRD 초안 → **세션 3 구현 예정** |
-| **구현 상태** | 문서 단계 (`src/`, `tests/` 미생성) |
+| **현재 단계** | Harness·ECB 확정 → **RED** (실패 테스트 작성) |
+| **구현 상태** | Harness 골격 있음 · `test_d_*` / `test_u_*` **미작성** |
 
 ---
 
@@ -39,20 +39,17 @@
 MagicSquare_XX/
 ├── README.md                                          # 본 파일
 ├── docs/
-│   └── PRD.md                                         # 제품 요구사항 v0.1 (세션 3)
+│   ├── PRD.md                                         # 제품 요구사항 v0.1 (세션 3)
+│   └── RED-TODO.md                                    # RED 단계 Dual-Track Todo (상세)
+├── src/entity|control|boundary/                       # ECB (패키지 골격)
+├── tests/entity|control|boundary/                     # Dual-Track 테스트 트랙
 ├── Report/
 │   ├── 01.REPORT.md                                   # Mom Test STEP 1 보고서
-│   └── 01.MagicSquare_ProblemDefinition_Report.md     # 문제 정의 보고서
+│   ├── 01.MagicSquare_ProblemDefinition_Report.md     # 문제 정의 보고서
+│   └── 02.MagicSquare_HarnessAndCursorRules_Report.md # Harness · .cursorrules
 └── prompting/
     ├── 01.prompting.md                                # STEP 1 인터뷰 Transcript
     └── 01.MagicSquare_ProblemDefinition_Prompting.md  # 문제 정의·워크북 Transcript
-```
-
-**세션 3 구현 예정 (미생성)**
-
-```
-src/                    # verify_lines 등 판정 로직
-tests/                  # 10선 · 합 34 · 대각선 회귀 테스트
 ```
 
 ---
@@ -64,6 +61,7 @@ tests/                  # 10선 · 합 34 · 대각선 회귀 테스트
 | [Report/01.REPORT.md](Report/01.REPORT.md) | Mom Test 인터뷰 원본 — 규칙, Q&A, 워크북 결과 |
 | [Report/01.MagicSquare_ProblemDefinition_Report.md](Report/01.MagicSquare_ProblemDefinition_Report.md) | 문제 정의 — 페르소나, 진짜/표면 문제, 도메인, 채점(8/10) |
 | [docs/PRD.md](docs/PRD.md) | PRD — R-G-I-O, Rule/Command/Skill/Test Loop, 성공 기준 |
+| [docs/RED-TODO.md](docs/RED-TODO.md) | RED 단계 Dual-Track Todo — 바운더리·로직 설계·pytest |
 | [prompting/01.prompting.md](prompting/01.prompting.md) | STEP 1 Cursor 대화 Export |
 | [prompting/01.MagicSquare_ProblemDefinition_Prompting.md](prompting/01.MagicSquare_ProblemDefinition_Prompting.md) | 문제 정의·워크북·PRD 작성 대화 Export |
 
@@ -88,6 +86,53 @@ tests/                  # 10선 · 합 34 · 대각선 회귀 테스트
 
 ---
 
+## RED 단계 체크리스트
+
+상세·pytest 명령: [docs/RED-TODO.md](docs/RED-TODO.md).  
+체크는 테스트 작성 후 **pytest FAIL** 확인 시 진행 (`/tdd-red`).
+
+### 공통 (RED 착수 전)
+
+- [ ] `pip install -e ".[dev]"` 후 Harness pytest 확인 (`0 collected` → 정상)
+- [ ] **MagicConstant SSOT** (`src/entity/constants.py` 등) — `34`/`16` 리터럴 금지
+- [ ] E001~E007 boundary 오류 표 상세 확정
+- [ ] conftest 픽스처: **G1**, **G_complete**, **G_mom**, **grid_g1** / **grid_bad_blanks** (D-LOC)
+
+### Track A — Boundary (UI · `U-*`)
+
+- [ ] **U-IN-01** — `grid=None` → `E003` `INVALID_NULL` → RED: `ModuleNotFoundError`
+- [ ] **U-IN-02** — `grid=3×4` → `E001` `INVALID_SIZE` → RED: `AssertionError`
+- [ ] **U-IN-03** — 빈칸 `0` ≠ 2개 → `E002` `INVALID_BLANKS` → RED: `AssertionError`
+- [ ] **U-OUT-01** — 유효 **G1** → `len(result)==6`, 1-index → RED: `pytest.fail()`
+- [ ] **U-FLOW-02** — `grid=None` → `execute()` 0회 → RED: `pytest.fail()`
+- [ ] Boundary 규칙: entity E001~E005 미처리 · skip/xfail 금지
+
+### Track B — Logic (entity/control · `D-*`)
+
+- [ ] **D-01** — **G1** → 행 4개 합 = MagicConstant
+- [ ] **D-02** — **G1** → 열 4개 합 = MagicConstant
+- [ ] **D-03** — **G1** → 대각선 2개 합 = MagicConstant
+- [ ] **D-04** — **G_complete** → `verify_lines` → `True`
+- [ ] **D-05** — **G_mom** (대각선 1개만 틀림) → `verify_lines` → `False` *(Mom Test 회귀)*
+- [ ] **D-06** — 빈칸 `0`이 2개가 아닌 격자 → 판정 실패
+- [ ] **D-07** — `1~16` 중복·범위 밖 → 도메인 거부
+- [ ] **D-08** — control 10선 판정 파이프라인
+- [ ] **D-09** — `solve_partial` → `int[6]` 1-index
+- [ ] Logic 규칙: Domain Mock 금지 · RED 중 `src/` 수정 금지 · SSOT import만
+
+### Track B — 빈칸 좌표 (D-LOC · `FR-LOC-01` 가칭)
+
+> **FR-LOC-01 (가칭):** 4×4 격자에서 `0`인 빈칸 **2개**의 `(행, 열)`을 **row-major** 순, **1-index** (1~4)로 반환.  
+> PRD 본문에는 아직 없음 — [docs/RED-TODO.md](docs/RED-TODO.md) §D-LOC · R-01·R-05·Report/02 근거.
+
+- [ ] **D-LOC-01** — **grid_g1** → `blank_coords_row_major` → `[(2,1),(3,4)]` row-major → RED: `ModuleNotFoundError`
+- [ ] **D-LOC-02** — **grid_g1** → 모든 `r,c ∈ {1..4}` (0-index 없음) → RED: `AssertionError`
+- [ ] **D-LOC-03** — **grid_bad_blanks** (빈칸 ≠2) → 도메인 거부 · E001~E005 **금지** → RED: `AssertionError`
+- [ ] `tests/entity/test_d_loc_01.py` RED · `pytest tests/entity/test_d_loc_01.py::test_d_loc_01_blank_coords_row_major -v`
+- [ ] PRD §3.1에 **FR-LOC-01** 문구 공식 반영 (선택)
+
+---
+
 ## 개발 로드맵
 
 | 단계 | 내용 | 상태 |
@@ -95,7 +140,8 @@ tests/                  # 10선 · 합 34 · 대각선 회귀 테스트
 | STEP 1 | Mom Test 인터뷰 | ✅ |
 | Problem Definition | 문제 정의 보고서 | ✅ |
 | PRD v0.1 | 세션 3 요구사항 | ✅ |
-| 세션 3 Red | 행/열/대각선 테스트 작성 | ⏳ |
+| Harness · ECB | `src/`·`tests/` 골격 · Dual-Track | ✅ |
+| RED | [체크리스트](#red-단계-체크리스트) · `test_d_*` / `test_u_*` | ⏳ |
 | 세션 3 Green | `verify_lines` 등 구현 | ⏳ |
 | STEP 2 | 추궁 답변·추가 인터뷰 | ⏳ |
 
@@ -109,8 +155,11 @@ tests/                  # 10선 · 합 34 · 대각선 회귀 테스트
 cd c:\DEV\MagicSqure_XX
 python -m venv .venv
 .\.venv\Scripts\activate.bat
-pip install pytest
+pip install -e ".[dev]"
 python -m pytest tests/ -v
+python -m pytest tests/boundary/test_u_*.py -v
+python -m pytest tests/entity/test_d_*.py -v
+python -m pytest tests/entity/test_d_loc_01.py::test_d_loc_01_blank_coords_row_major -v
 ```
 
 ---
